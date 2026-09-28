@@ -1,0 +1,183 @@
+@import 'tailwindcss';
+
+/*
+ * Light, clean, professional theme for the FinOps dashboard.
+ * Every component consumes these tokens (bg-surface, text-text, border-line,
+ * text-signal-green, …), so the palette lives in one place.
+ */
+@theme {
+  --color-bg: #f4f6f8;
+  --color-bg-pure: #ffffff;
+  --color-surface: #ffffff;
+  --color-surface-raised: #f8fafc;
+  --color-line: #e4e8ee;
+  --color-line-strong: #c9d1dc;
+
+  --color-text: #1a2333;
+  --color-text-secondary: #5b6779;
+  --color-text-muted: #939dad;
+
+  /* Signal colors tuned for light backgrounds (AA contrast on white). */
+  --color-signal-green: #0d9464;
+  --color-signal-amber: #c47b08;
+  --color-signal-red: #dc3a30;
+
+  --color-signal-green-dim: #e2f6ee;
+  --color-signal-amber-dim: #fbf0dc;
+  --color-signal-red-dim: #fce9e8;
+
+  /* Primary accent for interactive elements (nav, buttons, focus, charts). */
+  --color-accent: #3556e6;
+  --color-accent-strong: #2843c4;
+  --color-accent-soft: #eef1fe;
+
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI',
+    Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'JetBrains Mono', ui-monospace, 'SF Mono',
+    'Menlo', 'Consolas', monospace;
+
+  --radius-none: 0px;
+  --radius-sm: 8px;
+  --radius: 10px;
+  --radius-lg: 14px;
+
+  --shadow-card: 0 1px 2px rgba(23, 33, 52, 0.05), 0 1px 6px rgba(23, 33, 52, 0.04);
+  --shadow-pop: 0 4px 12px rgba(23, 33, 52, 0.08), 0 12px 32px rgba(23, 33, 52, 0.1);
+}
+
+/* CSS variable mirror for non-Tailwind consumers (ECharts theme, inline). */
+:root {
+  --bg: #f4f6f8;
+  --surface: #ffffff;
+  --surface-raised: #f8fafc;
+  --line: #e4e8ee;
+  --text: #1a2333;
+  --text-secondary: #5b6779;
+  --green: #0d9464;
+  --amber: #c47b08;
+  --red: #dc3a30;
+  --accent: #3556e6;
+
+  color-scheme: light;
+}
+
+* {
+  border-color: var(--color-line);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Numbers stay tabular for aligned dense tables. */
+table,
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Soft scrollbars. */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-line-strong);
+  border: 3px solid var(--color-bg);
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
+/* Focus visibility (accessibility). */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+@keyframes finops-pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    #eceff3 0%,
+    #f6f8fa 50%,
+    #eceff3 100%
+  );
+  background-size: 200% 100%;
+  animation: finops-shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes finops-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Live indicator: pulsing halo around a solid dot. */
+.live-dot {
+  position: relative;
+}
+.live-dot::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 9999px;
+  background: currentColor;
+  opacity: 0.3;
+  animation: live-ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+@keyframes live-ping {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.45;
+  }
+  75%,
+  100% {
+    transform: scale(1.7);
+    opacity: 0;
+  }
+}
+
+/* New audit rows fade/slide in softly on live refetches. */
+@keyframes row-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+    background-color: var(--color-accent-soft);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.row-enter {
+  animation: row-in 0.6s ease-out both;
+}

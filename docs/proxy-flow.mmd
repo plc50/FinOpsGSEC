@@ -1,0 +1,44 @@
+flowchart TD
+    CLIENT["Cliente: POST /v1/chat/completions"] --> AUTH{"API key valida?"}
+    AUTH -->|"No"| E401["401 missing_api_key / invalid_api_key"]
+    AUTH -->|"Si"| CONSUMER["Resolver consumidor y rol de la API key"]
+
+    CONSUMER --> CTXQ{"Contexto supera el limite de tokens?"}
+    CTXQ -->|"Si"| CTXRED["Reduccion de contexto: resumir historial antiguo con el modelo mas barato"]
+    CTXQ -->|"No"| CAT
+    CTXRED --> CAT["Clasificar categoria: reglas + clasificador LLM si la confianza es baja"]
+
+    CAT --> CAPS["Detectar capabilities requeridas: vision, tools, json"]
+    CAPS --> COMPLEX["Calcular score de complejidad y tier: low / medium / high"]
+    COMPLEX --> ROUTE["Seleccionar modelo baseline: routing por categoria + tier, config admin o catalogo"]
+    ROUTE --> BUDGET["Evaluar politica de presupuesto del consumidor"]
+
+    BUDGET --> BLOCKCAT{"Categoria bloqueada para este consumidor?"}
+    BLOCKCAT -->|"Si"| E403["403 blocked_category + auditoria + alerta"]
+    BLOCKCAT -->|"No"| CACHE{"Cache semantica: hit por similitud?"}
+
+    CACHE -->|"Hit"| CACHED["Respuesta cacheada, coste 0 USD + auditoria"]
+    CACHED --> RESP["Respuesta OpenAI-compatible al cliente"]
+    CACHE -->|"Miss"| RATE{"Rate limit de tokens por ventana excedido?"}
+
+    RATE -->|"Si"| E429A["429 rate_limited + auditoria + alerta"]
+    RATE -->|"No"| BDEC{"Decision de presupuesto"}
+
+    BDEC -->|"blocked"| E429B["429 budget_exceeded + alertas criticas + auditoria"]
+    BDEC -->|"degraded: baja 1 tier con ahorro minimo 25%"| CALL
+    BDEC -->|"allow / warn_only"| CALL["Llamar al proveedor con el modelo seleccionado"]
+
+    CALL --> PROV{"Proveedor del modelo"}
+    PROV -->|"OpenRouter"| POR["API OpenRouter"]
+    PROV -->|"Fireworks"| PFW["API Fireworks AI"]
+    PROV -->|"TabbyAPI"| PTB["TabbyAPI ExLlamaV3 local"]
+
+    POR --> OK{"Respuesta correcta?"}
+    PFW --> OK
+    PTB --> OK
+    OK -->|"No"| EPROV["Error de proveedor + auditoria + alerta critica"]
+    OK -->|"Si"| AUDIT["Auditoria: tokens reales, coste, accion de presupuesto"]
+
+    AUDIT --> ALERTS["Alertas: degradacion, peticion cara, aviso de presupuesto"]
+    ALERTS --> STORE["Guardar en cache semantica y registrar tokens en rate limit"]
+    STORE --> RESP

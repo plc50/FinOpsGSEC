@@ -1,0 +1,31 @@
+# Demo budgets (BACKEND_CONTEXT §3.3). Configurable; seeded into the budgets table.
+# Currency USD. warning_threshold per §10.5 (WARNING_THRESHOLD = 0.80).
+#
+# Optional per-consumer policy keys:
+#   category_downgrades: map of category -> fallback category. Requests
+#     classified into a restricted category are silently reclassified to the
+#     fallback (cheaper models) before routing; audited with original_category
+#     and category_source=policy_downgrade. Soft policy (never fails).
+#   blocked_categories: list of categories this consumer may never use
+#     (qa_internal | web_search | code_generation | misc). Requests classified
+#     into a blocked category are rejected (403 blocked_category) and audited.
+#     Hard policy; use category_downgrades when service should continue.
+#   rate_limit_tokens_per_minute: token budget in a sliding window; overrides
+#     the global default RATE_LIMIT_DEFAULT_TOKENS_PER_MINUTE.
+budgets:
+  equipo-atencion-cliente:
+    budget: 5.0
+    warning_threshold: 0.8
+  equipo-marketing:
+    budget: 10.0
+    warning_threshold: 0.8
+    # Marketing code requests are served with simple/cheap models (misc)
+    # instead of being rejected.
+    category_downgrades:
+      code_generation: misc
+  equipo-producto:
+    budget: 50.0
+    warning_threshold: 0.8
+  admin:
+    budget: 100.0
+    warning_threshold: 0.8

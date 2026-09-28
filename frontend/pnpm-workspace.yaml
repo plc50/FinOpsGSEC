@@ -1,0 +1,5 @@
+# pnpm 11 build-script approval (replaces the old onlyBuiltDependencies).
+# esbuild is a build dependency of Vite; approve its build script so
+# `pnpm install` exits cleanly instead of ERR_PNPM_IGNORED_BUILDS.
+allowBuilds:
+  esbuild: true

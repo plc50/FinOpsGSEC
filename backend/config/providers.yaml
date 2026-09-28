@@ -1,0 +1,25 @@
+# OpenAI-compatible provider catalog (BACKEND_CONTEXT §5).
+providers:
+  - id: openrouter
+    display_name: OpenRouter
+    base_url: https://openrouter.ai/api/v1
+    auth: bearer
+    api_key_env: OPENROUTER_API_KEY
+    supports_chat_completions: true
+    supports_streaming: true
+
+  - id: fireworks
+    display_name: Fireworks AI
+    base_url: https://api.fireworks.ai/inference/v1
+    auth: bearer
+    api_key_env: FIREWORKS_API_KEY
+    supports_chat_completions: true
+    supports_streaming: true
+
+  - id: tabbyapi
+    display_name: TabbyAPI
+    base_url: http://127.0.0.1:5000/v1
+    auth: bearer
+    api_key_env: TABBY_API_KEY
+    supports_chat_completions: true
+    supports_streaming: true

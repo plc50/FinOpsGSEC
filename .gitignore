@@ -1,0 +1,40 @@
+# Root orchestration runtime artifacts (pids + logs from `make demo-up`)
+.run/
+
+# Python caches / test artifacts
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Python environments
+.venv/
+
+# Node dependencies / builds
+node_modules/
+dist/
+dist-ssr/
+coverage/
+*.tsbuildinfo
+
+# Local env files
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.local
+
+# Local code intelligence index
+.codegraph/

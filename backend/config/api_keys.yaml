@@ -1,0 +1,30 @@
+# API keys / consumers / roles (BACKEND_CONTEXT §3.2/§3.3)
+# The bearer token value is literally the key below.
+api_keys:
+  finops_key_marketing:
+    api_key_id: key_marketing
+    consumer: equipo-marketing
+    role: consumer
+    can_select_model: false
+  finops_key_producto:
+    api_key_id: key_producto
+    consumer: equipo-producto
+    role: consumer
+    can_select_model: false
+  finops_key_atencion:
+    api_key_id: key_atencion
+    consumer: equipo-atencion-cliente
+    role: consumer
+    can_select_model: false
+  finops_key_admin:
+    api_key_id: key_admin
+    consumer: admin
+    role: admin
+    can_select_model: true
+
+# Consumer scores used by complexity formula (§8.6) and as a general signal (§3.3)
+consumer_scores:
+  equipo-atencion-cliente: 0.10
+  equipo-marketing: 0.30
+  equipo-producto: 0.60
+  admin: 0.30
