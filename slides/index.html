@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI FinOps Proxy — Pitch 5 min</title>
+<style>
+/* ============================================================
+   AI FinOps Proxy — 5-minute pitch deck (light theme)
+   Self-contained: no CDN, no external fonts. Works offline.
+   Palette: white/near-white · graphite ink · silver lines
+   ONE accent: #3556e6 (blue). Teal reserved for "medido".
+   ============================================================ */
+:root {
+  --bg: #fbfbfd;
+  --bg-2: #f4f5f8;
+  --panel: #ffffff;
+  --panel-border: rgba(20, 24, 34, 0.09);
+  --line: rgba(20, 24, 34, 0.12);
+  --ink: #14171f;
+  --ink-dim: #545b69;
+  --ink-faint: #9aa0ac;
+  --accent: #3556e6;
+  --accent-deep: #2743c2;
+  --accent-tint: rgba(53, 86, 230, 0.07);
+  --teal: #0a9d90;
+  --amber: #b57a12;
+  --red: #cf3d3d;
+  --shadow: 0 1px 2px rgba(18,22,32,0.04), 0 8px 28px rgba(18,22,32,0.06);
+
+  --t-hero: clamp(3rem, 8.2vw, 9rem);
+  --t-title: clamp(1.9rem, 3.6vw, 3.6rem);
+  --t-sub: clamp(1rem, 1.5vw, 1.5rem);
+  --t-body: clamp(0.85rem, 1.15vw, 1.18rem);
+  --t-small: clamp(0.68rem, 0.85vw, 0.85rem);
+  --t-micro: clamp(0.58rem, 0.72vw, 0.72rem);
+  --pad: clamp(2rem, 5vw, 6rem);
+
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- deck & slides ---------- */
+.deck { position: fixed; inset: 0; }
+
+.slide {
+  position: absolute;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: var(--pad);
+  background: var(--bg);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(24px) scale(0.985);
+  transition: opacity .55s cubic-bezier(.22,.61,.36,1),
+              transform .55s cubic-bezier(.22,.61,.36,1),
+              visibility 0s linear .55s;
+  pointer-events: none;
+}
+.slide.active {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition-delay: 0s;
+  pointer-events: auto;
+}
+
+/* staggered reveal of children inside the active slide */
+.rv { opacity: 0; transform: translateY(16px); transition: opacity .6s ease, transform .6s cubic-bezier(.22,.61,.36,1); }
+.slide.active .rv { opacity: 1; transform: none; }
+.slide.active .rv:nth-child(1), .slide.active [data-rv="1"] { transition-delay: .08s; }
+.slide.active .rv:nth-child(2), .slide.active [data-rv="2"] { transition-delay: .18s; }
+.slide.active .rv:nth-child(3), .slide.active [data-rv="3"] { transition-delay: .28s; }
+.slide.active .rv:nth-child(4), .slide.active [data-rv="4"] { transition-delay: .38s; }
+.slide.active .rv:nth-child(5), .slide.active [data-rv="5"] { transition-delay: .48s; }
+.slide.active .rv:nth-child(6), .slide.active [data-rv="6"] { transition-delay: .58s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .slide, .rv { transition-duration: .01s !important; transition-delay: 0s !important; transform: none !important; }
+}
+
+/* ---------- atmosphere (light, airy) ---------- */
+.glow {
+  position: absolute; border-radius: 50%; filter: blur(110px); pointer-events: none; z-index: 0;
+}
+.glow.blue { background: rgba(53,86,230,0.08); width: 52vw; height: 52vw; top: -20vw; right: -16vw; }
+.glow.deep { background: rgba(53,86,230,0.05); width: 44vw; height: 44vw; bottom: -24vw; left: -12vw; }
+.gridlines {
+  position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(20,24,34,0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(20,24,34,0.035) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: radial-gradient(ellipse 90% 80% at 50% 40%, black 30%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 90% 80% at 50% 40%, black 30%, transparent 100%);
+}
+.slide > *:not(.glow):not(.gridlines) { position: relative; z-index: 1; }
+
+/* ---------- shared bits ---------- */
+.kicker {
+  font-size: var(--t-small);
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+  margin-bottom: clamp(0.8rem, 1.6vh, 1.4rem);
+}
+h1 { font-size: var(--t-title); font-weight: 760; letter-spacing: -0.022em; line-height: 1.06; color: var(--ink); }
+.sub { font-size: var(--t-sub); color: var(--ink-dim); line-height: 1.5; font-weight: 400; }
+.accent { color: var(--accent); }
+.teal-t { color: var(--teal); }
+
+.badge {
+  display: inline-block; font-size: var(--t-micro); font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 0.22em 0.7em; border-radius: 100px; vertical-align: middle;
+}
+.badge.measured  { background: rgba(10,157,144,0.09); color: var(--teal); border: 1px solid rgba(10,157,144,0.3); }
+.badge.estimated { background: var(--accent-tint); color: var(--accent-deep); border: 1px solid rgba(53,86,230,0.28); }
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+}
+
+/* ---------- chrome: progress, counter, brand ---------- */
+.progress {
+  position: fixed; top: 0; left: 0; height: 3px; width: 100%;
+  background: rgba(20,24,34,0.06); z-index: 50;
+}
+.progress .bar {
+  height: 100%; width: 0;
+  background: linear-gradient(90deg, var(--accent-deep), var(--accent));
+  transition: width .45s cubic-bezier(.22,.61,.36,1);
+}
+.counter {
+  position: fixed; bottom: clamp(1rem, 2.4vh, 1.8rem); right: clamp(1.4rem, 2.6vw, 2.4rem);
+  font-family: var(--mono); font-size: var(--t-small); color: var(--ink-faint);
+  z-index: 50; letter-spacing: 0.1em;
+}
+.counter b { color: var(--ink-dim); font-weight: 600; }
+.brandmark {
+  position: fixed; bottom: clamp(1rem, 2.4vh, 1.8rem); left: clamp(1.4rem, 2.6vw, 2.4rem);
+  font-size: var(--t-micro); letter-spacing: 0.24em; text-transform: uppercase;
+  color: var(--ink-faint); z-index: 50; font-weight: 700;
+}
+.brandmark span { color: var(--accent); }
+
+/* ============ SLIDE 1 · portada ============ */
+.s-cover { align-items: flex-start; text-align: left; }
+.s-cover .logo-line {
+  display: flex; align-items: center; gap: 1rem;
+  font-size: var(--t-small); letter-spacing: 0.3em; text-transform: uppercase;
+  color: var(--ink-dim); font-weight: 600;
+  margin-bottom: clamp(1.5rem, 3.5vh, 3rem);
+}
+.s-cover .logo-line::before { content: ""; width: clamp(2rem,4vw,4rem); height: 2px; background: var(--accent); }
+.s-cover .product {
+  font-size: var(--t-hero); font-weight: 800; letter-spacing: -0.035em; line-height: 0.98;
+  background: linear-gradient(115deg, #14171f 35%, #33415e 62%, #3556e6 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  margin-bottom: clamp(1.2rem, 3vh, 2.4rem);
+}
+.s-cover .oneliner {
+  font-size: clamp(1.1rem, 1.9vw, 1.9rem); color: var(--ink-dim);
+  max-width: 36ch; line-height: 1.45; font-weight: 400;
+}
+.s-cover .oneliner b { color: var(--ink); font-weight: 650; }
+.s-cover .footer-meta {
+  margin-top: clamp(2rem, 5.5vh, 4.5rem);
+  font-size: var(--t-small); color: var(--ink-faint); letter-spacing: 0.06em;
+  display: flex; gap: 2.2em;
+}
+
+/* ============ SLIDE 2 · problema ============ */
+.s-problem .stat-hero {
+  display: flex; align-items: baseline; gap: clamp(1rem, 2.5vw, 2.5rem);
+  margin: clamp(1.2rem, 3vh, 2.6rem) 0;
+}
+.s-problem .stat-hero .n {
+  font-size: var(--t-hero); font-weight: 800; letter-spacing: -0.04em; line-height: 1;
+  background: linear-gradient(180deg, #14171f, #4b5674);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.s-problem .stat-hero .d { font-size: var(--t-sub); color: var(--ink-dim); max-width: 26ch; line-height: 1.4; }
+.s-problem .stat-hero .d em { color: var(--ink); font-style: normal; font-weight: 650; }
+.q-row { display: flex; gap: clamp(0.7rem, 1.4vw, 1.3rem); margin-top: clamp(1rem, 2.6vh, 2.2rem); }
+.q-row .q {
+  flex: 1; padding: clamp(0.9rem, 1.8vh, 1.5rem) clamp(1rem, 1.6vw, 1.5rem);
+  font-size: var(--t-body); color: var(--ink-dim); line-height: 1.35;
+}
+.q-row .q b { display: block; color: var(--accent-deep); font-size: clamp(1rem, 1.5vw, 1.5rem); margin-bottom: 0.3em; font-weight: 750; }
+
+/* ============ SLIDE 3 · solución + diagrama ============ */
+.diagram { display: flex; align-items: stretch; gap: clamp(0.8rem, 1.6vw, 1.6rem); margin-top: clamp(1.4rem, 3.4vh, 3rem); }
+.diagram .col { display: flex; flex-direction: column; justify-content: center; gap: clamp(0.5rem, 1.2vh, 1rem); flex: 1; }
+.diagram .node {
+  padding: clamp(0.6rem, 1.4vh, 1.1rem) clamp(0.8rem, 1.4vw, 1.3rem);
+  font-size: var(--t-body); font-weight: 650; color: var(--ink);
+  text-align: center;
+}
+.diagram .node small { display: block; font-weight: 400; color: var(--ink-faint); font-size: var(--t-micro); margin-top: 0.25em; letter-spacing: 0.04em; }
+.diagram .proxy-node {
+  flex: 1.25; display: flex; flex-direction: column; justify-content: center; text-align: center;
+  border: 1px solid rgba(53,86,230,0.35);
+  background: linear-gradient(165deg, #ffffff, #f0f3ff);
+  box-shadow: 0 10px 40px rgba(53,86,230,0.14), var(--shadow);
+  border-radius: 16px;
+  padding: clamp(1.2rem, 3vh, 2.4rem) clamp(1rem, 2vw, 2rem);
+}
+.diagram .proxy-node .t { font-size: clamp(1.1rem, 1.8vw, 1.8rem); font-weight: 780; letter-spacing: -0.01em; color: var(--ink); }
+.diagram .proxy-node .cap { font-size: var(--t-small); color: var(--accent-deep); margin-top: 0.5em; font-family: var(--mono); font-weight: 600; }
+.diagram .proxy-node ul { list-style: none; margin-top: clamp(0.7rem, 1.6vh, 1.3rem); font-size: var(--t-small); color: var(--ink-dim); line-height: 1.9; }
+.diagram .arrowcol {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5em;
+  flex: 0 0 clamp(3.2rem, 6vw, 6.5rem);
+}
+.diagram .arrowcol svg { width: 100%; height: 14px; overflow: visible; }
+.diagram .arrowcol .apitag {
+  font-family: var(--mono); font-size: var(--t-micro); font-weight: 700;
+  color: var(--accent-deep); background: var(--accent-tint);
+  border: 1px solid rgba(53,86,230,0.25); border-radius: 100px;
+  padding: 0.25em 0.7em; white-space: nowrap;
+}
+.flowline { stroke: var(--accent); stroke-width: 1.6; fill: none; opacity: 0.85; }
+.flowhead { fill: var(--accent); }
+
+/* ============ SLIDE 4 · un estándar, cero fricción ============ */
+.std-hero {
+  display: flex; align-items: center; justify-content: center; gap: clamp(1rem, 2.2vw, 2.2rem);
+  margin-top: clamp(1.6rem, 3.8vh, 3.2rem);
+}
+.std-side { flex: 1; max-width: 34rem; }
+.std-side .side-label {
+  font-size: var(--t-small); letter-spacing: 0.2em; text-transform: uppercase;
+  font-weight: 750; color: var(--ink-dim); margin-bottom: 0.8em;
+  display: flex; align-items: center; gap: 0.7em;
+}
+.std-side .side-label .arr { color: var(--accent); font-size: 1.25em; }
+.apibox {
+  font-family: var(--mono); font-size: clamp(0.72rem, 1vw, 1.02rem);
+  padding: clamp(0.9rem, 2vh, 1.5rem) clamp(1rem, 1.6vw, 1.6rem);
+  line-height: 1.75; color: var(--ink-dim);
+}
+.apibox .kw { color: var(--accent-deep); font-weight: 700; }
+.apibox .str { color: var(--teal); }
+.std-eq {
+  flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 0.4em;
+}
+.std-eq .sign {
+  font-size: clamp(2.2rem, 4.5vw, 4.5rem); font-weight: 800; color: var(--accent);
+  line-height: 1;
+}
+.std-eq .sign-label { font-size: var(--t-micro); letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-faint); font-weight: 700; }
+.std-clients { display: flex; flex-wrap: wrap; gap: 0.5em; margin-top: 0.9em; }
+.std-clients .chip {
+  font-size: var(--t-small); font-weight: 600; color: var(--ink-dim);
+  border: 1px solid var(--panel-border); background: var(--panel);
+  border-radius: 100px; padding: 0.3em 0.9em; box-shadow: var(--shadow);
+}
+.std-punch {
+  display: flex; gap: clamp(1rem, 2.4vw, 2.4rem); margin-top: clamp(1.6rem, 3.8vh, 3.2rem);
+}
+.std-punch .pt { flex: 1; padding: clamp(0.9rem, 2vh, 1.5rem) clamp(1rem, 1.6vw, 1.6rem); }
+.std-punch .pt .big { font-size: clamp(1.3rem, 2.4vw, 2.4rem); font-weight: 800; letter-spacing: -0.02em; color: var(--accent-deep); }
+.std-punch .pt .sm { font-size: var(--t-small); color: var(--ink-dim); margin-top: 0.35em; line-height: 1.45; }
+
+/* ============ SLIDE 5 · pipeline ============ */
+.pipeline { display: flex; align-items: stretch; gap: 0; margin-top: clamp(1.6rem, 4vh, 3.4rem); }
+.pipeline .step { flex: 1; position: relative; padding-right: clamp(1.2rem, 2.2vw, 2.2rem); }
+.pipeline .step:not(:last-child)::after {
+  content: ""; position: absolute; top: clamp(0.9rem, 1.9vh, 1.5rem); right: clamp(0.25rem, 0.7vw, 0.7rem);
+  width: clamp(0.5rem, 1vw, 1rem); height: 1px; background: rgba(53,86,230,0.5);
+}
+.pipeline .num {
+  font-family: var(--mono); font-size: var(--t-micro); color: var(--accent-deep);
+  letter-spacing: 0.15em; margin-bottom: 0.6em; font-weight: 700;
+}
+.pipeline .dot {
+  width: clamp(0.55rem, 1vh, 0.8rem); height: clamp(0.55rem, 1vh, 0.8rem); border-radius: 50%;
+  background: var(--accent); box-shadow: 0 0 0 4px var(--accent-tint);
+  margin-bottom: clamp(0.7rem, 1.6vh, 1.2rem);
+}
+.pipeline h3 { font-size: clamp(0.95rem, 1.35vw, 1.35rem); font-weight: 720; margin-bottom: 0.45em; letter-spacing: -0.01em; color: var(--ink); }
+.pipeline p { font-size: var(--t-small); color: var(--ink-dim); line-height: 1.5; }
+.pipeline code {
+  font-family: var(--mono); font-size: var(--t-micro); color: var(--accent-deep);
+  background: var(--accent-tint); padding: 0.15em 0.45em; border-radius: 5px;
+}
+.pipe-note {
+  margin-top: clamp(1.6rem, 4vh, 3rem); font-size: var(--t-body); color: var(--ink-dim);
+  border-left: 3px solid var(--accent); padding-left: 1.2em; line-height: 1.55; max-width: 72ch;
+}
+.pipe-note b { color: var(--ink); }
+
+/* ============ SLIDE 6 · dinero ============ */
+.s-money { text-align: left; }
+.money-grid { display: grid; grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr); gap: clamp(1.6rem, 3.5vw, 4rem); align-items: center; margin-top: clamp(0.8rem, 2vh, 1.6rem); }
+.money-hero .pct {
+  font-size: clamp(4.5rem, 12vw, 13rem); font-weight: 800; letter-spacing: -0.05em; line-height: 0.95;
+  background: linear-gradient(115deg, #14171f 15%, #3556e6 85%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.money-hero .pct-label { font-size: clamp(1rem, 1.7vw, 1.7rem); color: var(--ink); font-weight: 650; margin-top: 0.3em; }
+.money-hero .pct-detail { font-size: var(--t-body); color: var(--ink-dim); margin-top: 0.9em; line-height: 1.55; max-width: 34ch; }
+.money-hero .pct-detail b { color: var(--ink); font-weight: 720; }
+.bars { display: flex; flex-direction: column; gap: clamp(0.55rem, 1.4vh, 1.1rem); }
+.bar-row { display: grid; grid-template-columns: clamp(9rem, 13vw, 13rem) 1fr clamp(4.4rem, 5.4vw, 5.4rem); align-items: center; gap: clamp(0.6rem, 1.2vw, 1.2rem); }
+.bar-row .lbl { font-size: var(--t-small); color: var(--ink-dim); text-align: right; line-height: 1.25; }
+.bar-row .lbl b { color: var(--ink); font-weight: 650; display: block; }
+.bar-row .track { height: clamp(0.85rem, 1.8vh, 1.4rem); background: rgba(20,24,34,0.06); border-radius: 100px; overflow: hidden; }
+.bar-row .fill {
+  height: 100%; border-radius: 100px; width: 0;
+  transition: width 1s cubic-bezier(.22,.61,.36,1) .45s;
+}
+.slide.active .bar-row .fill { width: var(--w); }
+.fill.est { background: linear-gradient(90deg, var(--accent-deep), var(--accent)); }
+.fill.mea { background: linear-gradient(90deg, #078479, var(--teal)); }
+.bar-row .val { font-family: var(--mono); font-size: var(--t-small); color: var(--ink); font-weight: 650; }
+.legend { display: flex; gap: 1.6em; margin-top: clamp(0.9rem, 2vh, 1.6rem); font-size: var(--t-small); color: var(--ink-dim); align-items: center; }
+.legend .sw { display: inline-block; width: 0.85em; height: 0.85em; border-radius: 3px; margin-right: 0.5em; vertical-align: -0.08em; }
+.legend .sw.mea { background: var(--teal); }
+.legend .sw.est { background: var(--accent); }
+
+/* ============ SLIDE 7 · gobernanza ============ */
+.gov-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(0.8rem, 1.6vw, 1.5rem); margin-top: clamp(1.4rem, 3.4vh, 3rem); }
+.gov-grid .g {
+  padding: clamp(1rem, 2.2vh, 1.8rem) clamp(1rem, 1.6vw, 1.6rem);
+}
+.gov-grid .g .ic { font-size: clamp(1.2rem, 2vw, 2rem); margin-bottom: 0.5em; color: var(--accent); font-family: var(--mono); font-weight: 700; }
+.gov-grid .g h3 { font-size: clamp(0.95rem, 1.3vw, 1.3rem); font-weight: 720; margin-bottom: 0.4em; color: var(--ink); }
+.gov-grid .g p { font-size: var(--t-small); color: var(--ink-dim); line-height: 1.5; }
+.gov-grid .g code { font-family: var(--mono); font-size: var(--t-micro); color: var(--accent-deep); }
+.gov-flow {
+  margin-top: clamp(1.2rem, 3vh, 2.4rem);
+  display: flex; align-items: center; gap: clamp(0.6rem, 1.2vw, 1.2rem);
+  font-size: var(--t-body); font-weight: 650;
+}
+.gov-flow .stage { padding: 0.5em 1.1em; border-radius: 100px; border: 1px solid var(--panel-border); background: var(--panel); box-shadow: var(--shadow); }
+.gov-flow .stage.warn { border-color: rgba(181,122,18,0.4); color: var(--amber); }
+.gov-flow .stage.degr { border-color: rgba(53,86,230,0.4); color: var(--accent-deep); }
+.gov-flow .stage.block { border-color: rgba(207,61,61,0.4); color: var(--red); }
+.gov-flow .sep { color: var(--ink-faint); }
+.gov-flow .cond { font-size: var(--t-micro); color: var(--ink-faint); font-weight: 400; font-family: var(--mono); }
+
+/* ============ SLIDE 8 · cumplimiento ============ */
+.comp-grid { display: grid; grid-template-columns: 1.15fr 1fr; gap: clamp(1.4rem, 3vw, 3.2rem); margin-top: clamp(1.2rem, 3vh, 2.4rem); align-items: start; }
+.comp-h { font-size: var(--t-small); letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-faint); font-weight: 750; margin-bottom: clamp(0.7rem, 1.6vh, 1.2rem); }
+.checks { list-style: none; display: flex; flex-direction: column; gap: clamp(0.45rem, 1.2vh, 0.9rem); }
+.checks li {
+  display: flex; align-items: baseline; gap: 0.8em;
+  font-size: var(--t-body); color: var(--ink-dim); line-height: 1.4;
+}
+.checks li b { color: var(--ink); font-weight: 650; }
+.checks .ck {
+  flex: 0 0 auto; width: 1.25em; height: 1.25em; border-radius: 50%;
+  background: rgba(10,157,144,0.1); border: 1px solid rgba(10,157,144,0.4);
+  color: var(--teal); font-size: 0.85em; font-weight: 800;
+  display: inline-flex; align-items: center; justify-content: center;
+  transform: translateY(0.2em);
+}
+.pillars { display: flex; flex-direction: column; gap: clamp(0.45rem, 1.2vh, 0.9rem); }
+.pillar { display: grid; grid-template-columns: 1fr auto; gap: 1em; align-items: center; padding: clamp(0.55rem, 1.3vh, 1rem) clamp(0.9rem, 1.4vw, 1.4rem); }
+.pillar .pn { font-size: var(--t-body); font-weight: 650; color: var(--ink); }
+.pillar .pn small { display: block; font-weight: 400; color: var(--ink-faint); font-size: var(--t-micro); margin-top: 0.2em; }
+.pillar .pts { font-family: var(--mono); font-size: var(--t-small); color: var(--teal); font-weight: 750; white-space: nowrap; }
+
+/* ============ SLIDE 9 · arquitectura ============ */
+.arch-grid { display: grid; grid-template-columns: repeat(3, 1fr); grid-auto-rows: 1fr; gap: clamp(0.8rem, 1.6vw, 1.5rem); margin-top: clamp(1.4rem, 3.4vh, 3rem); }
+.arch-grid .a { padding: clamp(1rem, 2.2vh, 1.7rem) clamp(1rem, 1.5vw, 1.5rem); }
+.arch-grid .a h3 { font-size: clamp(0.92rem, 1.25vw, 1.25rem); font-weight: 720; margin-bottom: 0.4em; color: var(--ink); }
+.arch-grid .a h3 .badge { margin-left: 0.6em; }
+.arch-grid .a p { font-size: var(--t-small); color: var(--ink-dim); line-height: 1.5; }
+.arch-grid .a code { font-family: var(--mono); font-size: var(--t-micro); color: var(--accent-deep); }
+
+/* ============ SLIDE 10 · cierre ============ */
+.s-close { text-align: left; }
+.close-plays { display: flex; gap: clamp(0.7rem, 1.4vw, 1.4rem); margin-top: clamp(1.4rem, 3.2vh, 2.8rem); }
+.close-plays .p {
+  flex: 1; padding: clamp(0.9rem, 2vh, 1.6rem) clamp(0.9rem, 1.4vw, 1.4rem);
+  font-size: var(--t-small); color: var(--ink-dim); line-height: 1.45;
+}
+.close-plays .p b { display: block; color: var(--ink); font-size: var(--t-body); font-weight: 720; margin-bottom: 0.35em; }
+.close-plays .p code { font-family: var(--mono); font-size: var(--t-micro); color: var(--accent-deep); }
+.roadmap {
+  margin-top: clamp(1.4rem, 3.4vh, 2.8rem); font-size: var(--t-body); color: var(--ink-dim);
+  border-left: 3px solid var(--accent); padding-left: 1.2em; line-height: 1.55;
+}
+.roadmap b { color: var(--ink); }
+.thanks {
+  margin-top: clamp(1.6rem, 4vh, 3.2rem);
+  font-size: clamp(1.6rem, 3vw, 3rem); font-weight: 800; letter-spacing: -0.02em;
+  background: linear-gradient(115deg, #14171f 30%, #3556e6 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+
+/* ---------- responsive fallbacks ---------- */
+@media (max-width: 900px) {
+  .money-grid, .comp-grid { grid-template-columns: 1fr; }
+  .gov-grid, .arch-grid { grid-template-columns: repeat(2, 1fr); }
+  .diagram, .std-hero { flex-direction: column; }
+  .diagram .arrowcol { transform: rotate(90deg); flex: 0 0 2rem; }
+  .pipeline { flex-wrap: wrap; }
+  .pipeline .step { flex: 1 1 30%; margin-bottom: 1rem; }
+  .close-plays, .q-row, .std-punch { flex-wrap: wrap; }
+}
+@media (max-height: 620px) {
+  :root { --pad: clamp(1rem, 3vw, 2.5rem); }
+  .brandmark, .counter { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="progress" aria-hidden="true"><div class="bar" id="progressBar"></div></div>
+
+<main class="deck" id="deck" aria-live="polite">
+
+  <!-- ============ 1 · PORTADA ============ -->
+  <section class="slide s-cover" data-slide>
+    <div class="glow blue"></div><div class="glow deep"></div><div class="gridlines"></div>
+    <div class="logo-line rv">AI FinOps Challenge · Hackathon 2026</div>
+    <h1 class="product rv">AI FinOps<br>Proxy</h1>
+    <p class="oneliner rv">La capa de control que convierte el gasto en GenAI en una decisión de negocio: <b>visibilidad, gobernanza y ahorro medido</b> — sin cambiar una línea en tus clientes.</p>
+    <div class="footer-meta rv">
+      <span>API OpenAI en ambas direcciones</span>
+      <span>3 proveedores · 1 estándar</span>
+      <span>Demo 100% en vivo</span>
+    </div>
+  </section>
+
+  <!-- ============ 2 · EL PROBLEMA ============ -->
+  <section class="slide s-problem" data-slide>
+    <div class="glow deep"></div><div class="gridlines"></div>
+    <div class="kicker rv">El problema</div>
+    <h1 class="rv">El gasto en GenAI crece sin control</h1>
+    <div class="stat-hero rv">
+      <div class="n">32%</div>
+      <div class="d">del gasto cloud <em>se desperdicia</em> — y la IA generativa acelera la cifra <span style="color:var(--ink-faint)">(Flexera 2025)</span></div>
+    </div>
+    <div class="q-row">
+      <div class="q card rv"><b>¿Quién?</b>Nadie sabe qué equipo gasta qué</div>
+      <div class="q card rv"><b>¿Cuánto?</b>Ningún coste por petición ni por modelo</div>
+      <div class="q card rv"><b>¿Por qué?</b>Modelos premium para tareas triviales</div>
+      <div class="q card rv"><b>¿Cuándo?</b>La factura llega cuando ya es tarde</div>
+    </div>
+  </section>
+
+  <!-- ============ 3 · LA SOLUCIÓN ============ -->
+  <section class="slide" data-slide>
+    <div class="glow blue"></div><div class="gridlines"></div>
+    <div class="kicker rv">La solución</div>
+    <h1 class="rv">Un proxy FinOps entre tus equipos y los proveedores de IA</h1>
+    <p class="sub rv" style="margin-top:0.8em; max-width:64ch;">Habla la API de OpenAI <b style="color:var(--ink)">en ambas direcciones</b>: los clientes no cambian nada, y cada proveedor se conecta con el mismo estándar. Cada petición queda clasificada, enrutada, presupuestada y auditada.</p>
+    <div class="diagram rv">
+      <div class="col">
+        <div class="node card">OpenWebUI<small>equipos internos</small></div>
+        <div class="node card">opencode<small>agentes de código</small></div>
+        <div class="node card">curl / SDK<small>cualquier cliente OpenAI</small></div>
+      </div>
+      <div class="arrowcol">
+        <span class="apitag">API OpenAI</span>
+        <svg viewBox="0 0 100 14" preserveAspectRatio="none"><line class="flowline" x1="0" y1="7" x2="90" y2="7"/><polygon class="flowhead" points="90,2 100,7 90,12"/></svg>
+      </div>
+      <div class="proxy-node">
+        <div class="t">AI FinOps Proxy</div>
+        <div class="cap">/v1/chat/completions · /v1/models</div>
+        <ul>
+          <li>Routing inteligente · presupuestos</li>
+          <li>Caché semántica · rate limiting</li>
+          <li>Auditoría · forecast · informes</li>
+        </ul>
+      </div>
+      <div class="arrowcol">
+        <span class="apitag">API OpenAI</span>
+        <svg viewBox="0 0 100 14" preserveAspectRatio="none"><line class="flowline" x1="0" y1="7" x2="90" y2="7"/><polygon class="flowhead" points="90,2 100,7 90,12"/></svg>
+      </div>
+      <div class="col">
+        <div class="node card">OpenRouter<small>cloud multi-modelo</small></div>
+        <div class="node card">Fireworks<small>cloud de inferencia</small></div>
+        <div class="node card">TabbyAPI · ExLlamaV3<small>GPU local · SOTA</small></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 4 · UN ESTÁNDAR, CERO FRICCIÓN ============ -->
+  <section class="slide" data-slide>
+    <div class="glow blue"></div><div class="gridlines"></div>
+    <div class="kicker rv">Uno de los dos grandes esfuerzos del proyecto</div>
+    <h1 class="rv">Un estándar, cero fricción</h1>
+    <div class="std-hero rv">
+      <div class="std-side">
+        <div class="side-label"><span class="arr">→</span> Lo que entra</div>
+        <div class="apibox card"><span class="kw">POST</span> /v1/chat/completions<br>Authorization: Bearer <span class="str">finops_key_*</span><br>{ "model": <span class="str">"auto"</span>, "messages": […] }</div>
+        <div class="std-clients">
+          <span class="chip">OpenWebUI</span><span class="chip">opencode</span><span class="chip">curl</span><span class="chip">cualquier SDK</span>
+        </div>
+      </div>
+      <div class="std-eq">
+        <div class="sign">=</div>
+        <div class="sign-label">misma API</div>
+      </div>
+      <div class="std-side">
+        <div class="side-label"><span class="arr">→</span> Lo que sale</div>
+        <div class="apibox card"><span class="kw">POST</span> /v1/chat/completions<br>Authorization: Bearer <span class="str">clave del proveedor</span><br>{ "model": <span class="str">"el más barato capaz"</span>, … }</div>
+        <div class="std-clients">
+          <span class="chip">OpenRouter</span><span class="chip">Fireworks</span><span class="chip">TabbyAPI · ExLlamaV3</span>
+        </div>
+      </div>
+    </div>
+    <div class="std-punch">
+      <div class="pt card rv"><div class="big">0 cambios</div><div class="sm">de código en los clientes: apuntar la base URL al proxy y listo — demostrado con OpenWebUI y opencode.</div></div>
+      <div class="pt card rv"><div class="big">+1 proveedor = YAML</div><div class="sm">cada upstream habla el mismo estándar; añadirlo es configuración declarativa, no código.</div></div>
+      <div class="pt card rv"><div class="big">Claves protegidas</div><div class="sm">los equipos solo ven keys internas; las claves de proveedor se inyectan server-side y nunca salen del proxy.</div></div>
+    </div>
+  </section>
+
+  <!-- ============ 5 · CÓMO FUNCIONA ============ -->
+  <section class="slide" data-slide>
+    <div class="glow deep"></div><div class="gridlines"></div>
+    <div class="kicker rv">Cómo funciona</div>
+    <h1 class="rv">Cada petición pasa por un pipeline de decisión</h1>
+    <div class="pipeline rv">
+      <div class="step">
+        <div class="num">01</div><div class="dot"></div>
+        <h3>Auth</h3>
+        <p>Keys internas <code>finops_key_*</code> con scope aislado. Las claves de proveedor nunca salen del proxy.</p>
+      </div>
+      <div class="step">
+        <div class="num">02</div><div class="dot"></div>
+        <h3>Clasificación</h3>
+        <p>Categoría + complejidad + capabilities. Reglas deterministas; LLM barato solo si hay duda.</p>
+      </div>
+      <div class="step">
+        <div class="num">03</div><div class="dot"></div>
+        <h3>Routing</h3>
+        <p>El modelo <b style="color:var(--ink)">más barato capaz</b> de hacer el trabajo, entre 3 proveedores.</p>
+      </div>
+      <div class="step">
+        <div class="num">04</div><div class="dot"></div>
+        <h3>Presupuesto</h3>
+        <p>Política por consumidor: warn → degradar 1 tier → bloquear <code>429</code>.</p>
+      </div>
+      <div class="step">
+        <div class="num">05</div><div class="dot"></div>
+        <h3>Caché semántica</h3>
+        <p>pgvector, similitud coseno ≥ 0,95 → respuesta a <b style="color:var(--teal)">coste $0</b>.</p>
+      </div>
+      <div class="step">
+        <div class="num">06</div><div class="dot"></div>
+        <h3>Auditoría</h3>
+        <p>Tokens reales, coste por tarifa de catálogo, alertas y forecast en cada fila.</p>
+      </div>
+    </div>
+    <p class="pipe-note rv">El cliente envía <b>model = auto</b> y el proxy responde con formato OpenAI estándar. Todo lo demás — decisión, coste, ahorro — queda registrado y es verificable.</p>
+  </section>
+
+  <!-- ============ 6 · EL DINERO ============ -->
+  <section class="slide s-money" data-slide>
+    <div class="glow blue"></div><div class="gridlines"></div>
+    <div class="kicker rv">El dinero — datos reales de la demo</div>
+    <div class="money-grid">
+      <div class="money-hero rv">
+        <div class="pct">−64%</div>
+        <div class="pct-label">de reducción de coste vs sin proxy</div>
+        <div class="pct-detail"><b>$14,84 ahorrados</b> frente a <b>$8,37 gastados</b> · 7 días · ~1.240 peticiones reales del seed de la demo</div>
+      </div>
+      <div>
+        <div class="bars">
+          <div class="bar-row rv">
+            <div class="lbl"><b>Smart routing</b>vs todo al tier premium</div>
+            <div class="track"><div class="fill est" style="--w:100%"></div></div>
+            <div class="val">$11,77</div>
+          </div>
+          <div class="bar-row rv">
+            <div class="lbl"><b>Degradación</b>por presupuesto</div>
+            <div class="track"><div class="fill mea" style="--w:11.4%"></div></div>
+            <div class="val">$1,34</div>
+          </div>
+          <div class="bar-row rv">
+            <div class="lbl"><b>Token reduction</b>compactar contexto</div>
+            <div class="track"><div class="fill mea" style="--w:10.3%"></div></div>
+            <div class="val">$1,21</div>
+          </div>
+          <div class="bar-row rv">
+            <div class="lbl"><b>Caché semántica</b>hits a $0</div>
+            <div class="track"><div class="fill mea" style="--w:4.3%"></div></div>
+            <div class="val">$0,51</div>
+          </div>
+          <div class="bar-row rv">
+            <div class="lbl"><b>Downgrade</b>de categoría</div>
+            <div class="track"><div class="fill mea" style="--w:0.8%"></div></div>
+            <div class="val">$0,02</div>
+          </div>
+        </div>
+        <div class="legend rv">
+          <span><span class="sw mea"></span><b style="color:var(--ink)">Medido</b> — datos auditados × tarifas de catálogo</span>
+          <span><span class="sw est"></span><b style="color:var(--ink)">Estimado</b> — contrafactual explícito</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 7 · GOBERNANZA ============ -->
+  <section class="slide" data-slide>
+    <div class="glow deep"></div><div class="gridlines"></div>
+    <div class="kicker rv">Gobernanza</div>
+    <h1 class="rv">Control total, degradación acotada por diseño</h1>
+    <div class="gov-flow rv">
+      <span class="stage warn">Warning al 80%</span>
+      <span class="sep">→</span>
+      <span class="stage degr">Degradar 1 tier <span class="cond">si ahorro ≥ 25%</span></span>
+      <span class="sep">→</span>
+      <span class="stage block">429 budget_exceeded</span>
+    </div>
+    <div class="gov-grid">
+      <div class="g card rv">
+        <div class="ic">$</div>
+        <h3>Presupuestos por consumidor</h3>
+        <p>Editables en vivo desde la UI. Nunca más de un tier abajo, misma categoría, capabilities preservadas.</p>
+      </div>
+      <div class="g card rv">
+        <div class="ic">!</div>
+        <h3>Alertas</h3>
+        <p><code>budget_warning</code> · <code>model_degraded</code> · <code>cost_spike</code> · <code>projection_exceeded</code> y más.</p>
+      </div>
+      <div class="g card rv">
+        <div class="ic">~</div>
+        <h3>Forecast</h3>
+        <p>Proyección de gasto y fecha estimada de agotamiento del presupuesto, por consumidor.</p>
+      </div>
+      <div class="g card rv">
+        <div class="ic">#</div>
+        <h3>Auditoría completa</h3>
+        <p>Cada petición: tokens, coste, modelo baseline vs elegido, ahorro. Filtrable en el dashboard.</p>
+      </div>
+      <div class="g card rv">
+        <div class="ic">%</div>
+        <h3>Rate limiting</h3>
+        <p>Tokens/minuto por consumidor, ventana deslizante → <code>429 rate_limited</code>.</p>
+      </div>
+      <div class="g card rv">
+        <div class="ic">→</div>
+        <h3>Políticas de categoría</h3>
+        <p>El código de marketing se sirve reclasificado a <code>misc</code> con modelos baratos — o 403 duro. Palanca de negocio.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 8 · CUMPLIMIENTO ============ -->
+  <section class="slide" data-slide>
+    <div class="glow blue"></div><div class="gridlines"></div>
+    <div class="kicker rv">Cumplimiento del challenge</div>
+    <h1 class="rv">6 de 6 criterios · 5 de 5 pilares</h1>
+    <div class="comp-grid">
+      <div class="rv">
+        <div class="comp-h">Criterios de aceptación</div>
+        <ul class="checks">
+          <li><span class="ck">✓</span><span><b>Routing inteligente</b> entre 3 proveedores con <b>model=auto</b></span></li>
+          <li><span class="ck">✓</span><span><b>Tokens + coste</b> registrados en cada petición</span></li>
+          <li><span class="ck">✓</span><span><b>3 consumidores</b> con gasto e historial independientes</span></li>
+          <li><span class="ck">✓</span><span><b>Presupuesto configurable</b> → warn / degradar / bloquear</span></li>
+          <li><span class="ck">✓</span><span><b>2 criterios explícitos de ahorro</b>, aplicados a datos reales</span></li>
+          <li><span class="ck">✓</span><span><b>Demo en vivo</b> + <span style="font-family:var(--mono); font-size:0.9em;">go-task verify</span>: 11 PASS</span></li>
+        </ul>
+      </div>
+      <div class="rv">
+        <div class="comp-h">Rúbrica · 110 pts</div>
+        <div class="pillars">
+          <div class="pillar card"><span class="pn">Visibilidad de costes<small>tokens y coste verificables, por consumidor</small></span><span class="pts">25</span></div>
+          <div class="pillar card"><span class="pn">Gobernanza y control<small>presupuestos, alertas, auditoría, forecast</small></span><span class="pts">25</span></div>
+          <div class="pillar card"><span class="pn">Criterios de ahorro<small>routing barato-capaz + degradación acotada</small></span><span class="pts">30</span></div>
+          <div class="pillar card"><span class="pn">Arquitectura<small>agnóstica, 3 capas, claves protegidas</small></span><span class="pts">20</span></div>
+          <div class="pillar card"><span class="pn">Presentación<small>esta historia</small></span><span class="pts">10</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 9 · ARQUITECTURA / EXTRAS ============ -->
+  <section class="slide" data-slide>
+    <div class="glow deep"></div><div class="gridlines"></div>
+    <div class="kicker rv">Arquitectura y diferenciación</div>
+    <h1 class="rv">Diseñado como lo querría un CTO en producción</h1>
+    <div class="arch-grid">
+      <div class="a card rv">
+        <h3>Un estándar en ambas direcciones</h3>
+        <p>API OpenAI al recibir y al llamar upstream. OpenWebUI y opencode funcionan apuntando a <code>localhost:8000/v1</code> — cero cambios de código.</p>
+      </div>
+      <div class="a card rv">
+        <h3>Multi-proveedor por YAML</h3>
+        <p>OpenRouter, Fireworks y TabbyAPI local hablan el mismo estándar: añadir un proveedor es <b style="color:var(--ink)">configuración, no código</b>.</p>
+      </div>
+      <div class="a card rv">
+        <h3>Inferencia local SOTA</h3>
+        <p>TabbyAPI con <b style="color:var(--ink)">ExLlamaV3</b> (cuantización EXL3): mejor throughput/VRAM que Ollama, misma API.</p>
+      </div>
+      <div class="a card rv">
+        <h3>Caché semántica <span class="badge measured">$0 / hit</span></h3>
+        <p>pgvector + similitud coseno ≥ 0,95: prompts equivalentes se sirven de caché al instante.</p>
+      </div>
+      <div class="a card rv">
+        <h3>Seguridad de claves</h3>
+        <p>Las claves de proveedor viven solo en el proxy, inyectadas server-side. Scope por consumidor: 403 entre equipos.</p>
+      </div>
+      <div class="a card rv">
+        <h3>Informes CSV / PDF</h3>
+        <p>Exportes de coste descargables con filtros por consumidor y fechas. Listos para finanzas.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 10 · CIERRE ============ -->
+  <section class="slide s-close" data-slide>
+    <div class="glow blue"></div><div class="glow deep"></div><div class="gridlines"></div>
+    <div class="kicker rv">Ahora, en vivo</div>
+    <h1 class="rv">Lo que vais a ver funcionando</h1>
+    <div class="close-plays">
+      <div class="p card rv"><b>Routing en directo</b>3 prompts, 3 proveedores distintos, coste por fila con <code>model=auto</code></div>
+      <div class="p card rv"><b>Presupuesto al límite</b>bajamos el budget → <code>429 budget_exceeded</code> + alerta, en segundos</div>
+      <div class="p card rv"><b>Caché a $0</b>prompt parafraseado → hit semántico instantáneo, coste cero</div>
+      <div class="p card rv"><b>El ROI en una pantalla</b>pestaña Savings: −64%, medido vs estimado</div>
+    </div>
+    <p class="roadmap rv"><b>Roadmap:</b> fallback automático entre proveedores y reconciliación contra factura real.</p>
+    <div class="thanks rv">Gracias.</div>
+  </section>
+
+</main>
+
+<div class="counter" aria-hidden="true"><b id="curSlide">1</b> / <span id="totSlides">10</span></div>
+<div class="brandmark" aria-hidden="true">AI FinOps <span>Proxy</span></div>
+
+<script>
+/* Minimal deck controller: keyboard, wheel, touch. */
+(function () {
+  const slides = Array.from(document.querySelectorAll('[data-slide]'));
+  const bar = document.getElementById('progressBar');
+  const cur = document.getElementById('curSlide');
+  const tot = document.getElementById('totSlides');
+  let i = 0;
+  tot.textContent = slides.length;
+
+  function go(n) {
+    n = Math.max(0, Math.min(slides.length - 1, n));
+    if (n === i && slides[i].classList.contains('active')) return;
+    slides.forEach((s, k) => s.classList.toggle('active', k === n));
+    i = n;
+    cur.textContent = i + 1;
+    bar.style.width = ((i + 1) / slides.length * 100) + '%';
+    location.hash = 's' + (i + 1);
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (['ArrowRight', 'ArrowDown', ' ', 'PageDown', 'Enter'].includes(e.key)) { e.preventDefault(); go(i + 1); }
+    else if (['ArrowLeft', 'ArrowUp', 'PageUp', 'Backspace'].includes(e.key)) { e.preventDefault(); go(i - 1); }
+    else if (e.key === 'Home') { e.preventDefault(); go(0); }
+    else if (e.key === 'End') { e.preventDefault(); go(slides.length - 1); }
+  });
+
+  /* wheel: debounce so trackpads don't skip slides */
+  let wheelLock = false;
+  document.addEventListener('wheel', (e) => {
+    if (wheelLock || Math.abs(e.deltaY) < 24) return;
+    wheelLock = true;
+    setTimeout(() => wheelLock = false, 650);
+    go(i + (e.deltaY > 0 ? 1 : -1));
+  }, { passive: true });
+
+  /* touch swipe */
+  let tx = null;
+  document.addEventListener('touchstart', (e) => { tx = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', (e) => {
+    if (tx === null) return;
+    const dx = e.changedTouches[0].clientX - tx;
+    if (Math.abs(dx) > 50) go(i + (dx < 0 ? 1 : -1));
+    tx = null;
+  }, { passive: true });
+
+  /* deep-link support: #s4 opens slide 4 */
+  const m = location.hash.match(/^#s(\d+)$/);
+  go(m ? parseInt(m[1], 10) - 1 : 0);
+})();
+</script>
+</body>
+</html>

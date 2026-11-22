@@ -1,0 +1,26 @@
+# AI FinOps Proxy — root infrastructure composition.
+#
+# Single entry point for a judge who wants to bring up infra with Docker only.
+# We `include` the existing compose files instead of duplicating services, so
+# there is one source of truth and no port conflicts:
+#
+#   - backend/docker-compose.yml  -> Postgres 16 + pgvector (container
+#                                    "finops-postgres", :5432, auto-creates the
+#                                    finops + finops_test DBs)
+#   - material/docker-compose.yml -> ollama-provider-a (:11434, llama3.2:3b)
+#                                    ollama-provider-b (:11435, mistral:7b)
+#
+# The root demo targets start the backend outside Docker, so only `db` is
+# required here. External/OpenAI-compatible providers are configured separately
+# and can be started on demand for real-provider demos.
+#
+# Usage:
+#   docker compose up -d db                                   # Postgres only (enough for the mock demo)
+#   docker compose up -d ollama-provider-a ollama-provider-b  # optional real providers
+#   docker compose up -d                                      # everything
+#   docker compose down                                       # stop everything
+#
+# Requires Docker Compose v2.20+ for `include`.
+include:
+  - backend/docker-compose.yml
+#  - material/docker-compose.yml

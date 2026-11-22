@@ -1,0 +1,94 @@
+# Manually maintained provider model catalog (BACKEND_CONTEXT §5).
+# /v1/models does not expose prices/capabilities, so these values are curated.
+provider_models:
+  - provider: openrouter
+    model: anthropic/claude-sonnet-5
+    display_name: Claude Sonnet 5
+    input_price_per_1m_tokens: 3.0
+    output_price_per_1m_tokens: 15.0
+    capabilities: [text, tool_calling, structured_outputs]
+  - provider: openrouter
+    model: perplexity/sonar-pro-search
+    display_name: Sonar Pro Search
+    input_price_per_1m_tokens: 3.0
+    output_price_per_1m_tokens: 15.0
+    capabilities: [text, web_search]
+  - provider: openrouter
+    model: x-ai/grok-4.20
+    display_name: Grok 4.20
+    input_price_per_1m_tokens: 1.0
+    output_price_per_1m_tokens: 5.0
+    capabilities: [text, web_search, tool_calling]
+  - provider: openrouter
+    model: perplexity/sonar
+    display_name: Sonar
+    input_price_per_1m_tokens: 0.30
+    output_price_per_1m_tokens: 0.50
+    capabilities: [text, web_search]
+  - provider: fireworks
+    model: accounts/fireworks/models/gpt-oss-120b
+    display_name: GPT OSS 120B
+    input_price_per_1m_tokens: 0.90
+    output_price_per_1m_tokens: 0.90
+    capabilities: [text, tool_calling, structured_outputs]
+  - provider: fireworks
+    model: accounts/fireworks/models/deepseek-v4-pro
+    display_name: DeepSeek V4 Pro
+    input_price_per_1m_tokens: 0.55
+    output_price_per_1m_tokens: 2.20
+    capabilities: [text, tool_calling, structured_outputs]
+  - provider: fireworks
+    model: accounts/fireworks/models/glm-5p1
+    display_name: GLM 5.1
+    input_price_per_1m_tokens: 0.20
+    output_price_per_1m_tokens: 0.20
+    capabilities: [text, structured_outputs]
+  - provider: tabbyapi
+    model: gemma-4-12B-it-exl3
+    display_name: Gemma 4 12B IT EXL3
+    input_price_per_1m_tokens: 0.06
+    output_price_per_1m_tokens: 0.06
+    capabilities: [text, structured_outputs, tool_calling]
+
+# Catalog defaults used when there is no active admin routing_config row.
+routing_defaults:
+  qa_internal:
+    high:
+      provider: openrouter
+      model: anthropic/claude-sonnet-5
+    medium:
+      provider: fireworks
+      model: accounts/fireworks/models/gpt-oss-120b
+    low:
+      provider: tabbyapi
+      model: gemma-4-12B-it-exl3
+  web_search:
+    high:
+      provider: openrouter
+      model: perplexity/sonar-pro-search
+    medium:
+      provider: openrouter
+      model: x-ai/grok-4.20
+    low:
+      provider: openrouter
+      model: perplexity/sonar
+  code_generation:
+    high:
+      provider: openrouter
+      model: anthropic/claude-sonnet-5
+    medium:
+      provider: fireworks
+      model: accounts/fireworks/models/deepseek-v4-pro
+    low:
+      provider: tabbyapi
+      model: gemma-4-12B-it-exl3
+  misc:
+    high:
+      provider: openrouter
+      model: anthropic/claude-sonnet-5
+    medium:
+      provider: fireworks
+      model: accounts/fireworks/models/glm-5p1
+    low:
+      provider: tabbyapi
+      model: gemma-4-12B-it-exl3

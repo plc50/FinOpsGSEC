@@ -1,0 +1,21 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: finops-postgres
+    environment:
+      POSTGRES_USER: finops
+      POSTGRES_PASSWORD: finops
+      POSTGRES_DB: finops
+    ports:
+      - "5432:5432"
+    volumes:
+      - finops_pgdata:/var/lib/postgresql/data
+      - ./scripts/init_test_db.sql:/docker-entrypoint-initdb.d/init_test_db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U finops -d finops"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  finops_pgdata:
